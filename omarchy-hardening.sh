@@ -552,9 +552,16 @@ show_welcome() {
         case $key in
             s|S)
                 echo ""
-                echo -e "  ${CYAN}Running: omarchy-snapshot create${NC}"
+                echo -e "  ${CYAN}Creating snapshot...${NC}"
                 echo ""
-                omarchy-snapshot create
+                # Get sudo credentials first
+                if sudo -v; then
+                    sudo omarchy-snapshot create
+                    echo ""
+                    print_success "Snapshot created"
+                else
+                    print_error "Failed to obtain sudo credentials"
+                fi
                 echo ""
                 echo -e "  ${DIM}Press Enter to continue...${NC}"
                 read
