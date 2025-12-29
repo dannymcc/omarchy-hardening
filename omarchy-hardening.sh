@@ -45,20 +45,9 @@ MAX_LOGIN_ATTEMPTS=3
 
 print_banner() {
     clear
-    echo -e "${MAGENTA}"
-    cat << 'EOF'
-   ___  _ __ ___   __ _ _ __ ___ | |__  _   _
-  / _ \| '_ ` _ \ / _` | '__/ __|| '_ \| | | |
- | (_) | | | | | | (_| | | | (__ | | | | |_| |
-  \___/|_| |_| |_|\__,_|_|  \___||_| |_|\__, |
-  | |__   __ _ _ __ __| | ___ _ __ (_)_ |___/ __ _
-  | '_ \ / _` | '__/ _` |/ _ \ '_ \| | '_ \ / _` |
-  | | | | (_| | | | (_| |  __/ | | | | | | | (_| |
-  |_| |_|\__,_|_|  \__,_|\___|_| |_|_|_| |_|\__, |
-                                            |___/
-EOF
-    echo -e "${NC}"
-    echo -e "${DIM}  ─────────────────────────────────────────${NC}"
+    echo ""
+    echo -e "  ${MAGENTA}${BOLD}OMARCHY HARDENING${NC}"
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
 }
 
@@ -528,6 +517,28 @@ apply_hardening() {
     read
 }
 
+show_welcome() {
+    print_banner
+    echo -e "  ${YELLOW}${BOLD}Before you begin${NC}"
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo ""
+    echo -e "  ${BOLD}1. Create a snapshot first${NC}"
+    echo -e "     Before making system changes, create a backup:"
+    echo ""
+    echo -e "     ${CYAN}sudo timeshift --create --comments \"Before hardening\"${NC}"
+    echo ""
+    echo -e "  ${BOLD}2. Review what this script does${NC}"
+    echo -e "     It's good practice to read scripts before running them."
+    echo -e "     Consider running commands manually to understand each change."
+    echo ""
+    echo -e "     ${DIM}View the source:${NC}"
+    echo -e "     ${CYAN}https://github.com/dannymcc/omarchy-hardening${NC}"
+    echo ""
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo ""
+    read -p "  Press Enter to continue or Ctrl+C to exit... "
+}
+
 # ============================================================================
 # Main
 # ============================================================================
@@ -537,6 +548,9 @@ if [[ $EUID -eq 0 ]]; then
     print_error "Do not run as root. The script will use sudo when needed."
     exit 1
 fi
+
+# Show welcome screen once
+show_welcome
 
 # Main loop
 while true; do
