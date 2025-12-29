@@ -47,15 +47,17 @@ print_banner() {
     clear
     echo -e "${MAGENTA}"
     cat << 'EOF'
-                                      _
    ___  _ __ ___   __ _ _ __ ___ | |__  _   _
   / _ \| '_ ` _ \ / _` | '__/ __|| '_ \| | | |
  | (_) | | | | | | (_| | | | (__ | | | | |_| |
   \___/|_| |_| |_|\__,_|_|  \___||_| |_|\__, |
-                                        |___/
+  | |__   __ _ _ __ __| | ___ _ __ (_)_ |___/ __ _
+  | '_ \ / _` | '__/ _` |/ _ \ '_ \| | '_ \ / _` |
+  | | | | (_| | | | (_| |  __/ | | | | | | | (_| |
+  |_| |_|\__,_|_|  \__,_|\___|_| |_|_|_| |_|\__, |
+                                            |___/
 EOF
     echo -e "${NC}"
-    echo -e "${BOLD}  Security Hardening${NC}"
     echo -e "${DIM}  ─────────────────────────────────────────${NC}"
     echo ""
 }
@@ -383,8 +385,9 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Disable LLMNR${NC}"
         echo -e "    ${CYAN}Why:${NC} LLMNR allows attackers on your local network to intercept"
         echo -e "         traffic by responding to name resolution queries."
-        echo -e "    ${CYAN}Action:${NC} Creates /etc/systemd/resolved.conf.d/disable-llmnr.conf"
-        echo -e "            and restarts systemd-resolved."
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Create /etc/systemd/resolved.conf.d/disable-llmnr.conf"
+        echo -e "      ${YELLOW}2.${NC} Restart systemd-resolved service"
         echo ""
     fi
 
@@ -392,8 +395,11 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Enable UFW Firewall${NC}"
         echo -e "    ${CYAN}Why:${NC} Earlier Omarchy versions had UFW configured but not enabled,"
         echo -e "         leaving the system exposed to incoming connections."
-        echo -e "    ${CYAN}Action:${NC} Resets UFW rules, denies incoming by default, allows"
-        echo -e "            outgoing, permits SSH, and enables the firewall service."
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Reset all existing UFW rules (ufw --force reset)"
+        echo -e "      ${YELLOW}2.${NC} Set default policy: deny incoming, allow outgoing"
+        echo -e "      ${YELLOW}3.${NC} Allow SSH connections (port 22)"
+        echo -e "      ${YELLOW}4.${NC} Enable UFW firewall service"
         echo ""
     fi
 
@@ -401,8 +407,11 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Tailscale-only SSH${NC}"
         echo -e "    ${CYAN}Why:${NC} Binding SSH to your Tailscale IP makes it invisible to the"
         echo -e "         public internet, dramatically reducing attack surface."
-        echo -e "    ${CYAN}Action:${NC} Creates /etc/ssh/sshd_config.d/tailscale-only.conf to bind"
-        echo -e "            SSH to Tailscale IP and disables password authentication."
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Create /etc/ssh/sshd_config.d/tailscale-only.conf"
+        echo -e "      ${YELLOW}2.${NC} Set ListenAddress to your Tailscale IP"
+        echo -e "      ${YELLOW}3.${NC} Disable password authentication (keys only)"
+        echo -e "      ${YELLOW}4.${NC} Restart sshd service"
         echo ""
     fi
 
@@ -410,7 +419,9 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Limit Login Attempts${NC}"
         echo -e "    ${CYAN}Why:${NC} Omarchy increased failed login attempts from 3 to 10, making"
         echo -e "         brute-force attacks easier if someone has physical access."
-        echo -e "    ${CYAN}Action:${NC} Sets deny=$MAX_LOGIN_ATTEMPTS in /etc/security/faillock.conf"
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Edit /etc/security/faillock.conf"
+        echo -e "      ${YELLOW}2.${NC} Set deny=$MAX_LOGIN_ATTEMPTS (lock after $MAX_LOGIN_ATTEMPTS failed attempts)"
         echo ""
     fi
 
@@ -418,8 +429,10 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Configure Git Signing${NC}"
         echo -e "    ${CYAN}Why:${NC} Git commits are trivially forgeable. SSH signing proves commits"
         echo -e "         came from you and shows a 'Verified' badge on GitHub."
-        echo -e "    ${CYAN}Action:${NC} Configures git to sign commits/tags with your SSH key and"
-        echo -e "            applies workflow optimizations (rebase, rerere, etc)."
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Set user.signingkey to $SSH_KEY_PATH"
+        echo -e "      ${YELLOW}2.${NC} Enable commit and tag signing (gpg.format=ssh)"
+        echo -e "      ${YELLOW}3.${NC} Apply workflow optimizations (pull.rebase, rerere, etc)"
         echo ""
     fi
 
@@ -427,7 +440,8 @@ confirm_selection() {
         echo -e "  ${GREEN}✓${NC} ${BOLD}Disable GNOME Screensaver${NC}"
         echo -e "    ${CYAN}Why:${NC} Prevents conflicts between GNOME screensaver and hyprlock,"
         echo -e "         which Omarchy uses for screen locking."
-        echo -e "    ${CYAN}Action:${NC} Disables GNOME screensaver via gsettings."
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Run: gsettings set org.gnome.desktop.screensaver idle-activation-enabled false"
         echo ""
     fi
 
