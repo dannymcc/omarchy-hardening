@@ -228,25 +228,30 @@ harden_firewall() {
         sudo pacman -S --noconfirm ufw
     fi
 
-    sudo ufw --force reset > /dev/null
-    sudo ufw default deny incoming
-    sudo ufw default allow outgoing
+    print_info "Resetting UFW rules..."
+    sudo ufw --force reset > /dev/null 2>&1
+
+    print_info "Setting default policies..."
+    yes | sudo ufw default deny incoming > /dev/null 2>&1
+    yes | sudo ufw default allow outgoing > /dev/null 2>&1
 
     if [[ "${OPTIONS[tailscale]}" == true ]]; then
         TAILSCALE_IFACE=$(ip -o link show | grep -o 'tailscale[0-9]*' | head -1)
         if [[ -n "$TAILSCALE_IFACE" ]]; then
-            sudo ufw allow in on "$TAILSCALE_IFACE"
+            yes | sudo ufw allow in on "$TAILSCALE_IFACE" > /dev/null 2>&1
             print_success "Allowed traffic on Tailscale interface ($TAILSCALE_IFACE)"
         else
             print_warning "Tailscale interface not found, using tailscale0"
-            sudo ufw allow in on tailscale0
+            yes | sudo ufw allow in on tailscale0 > /dev/null 2>&1
         fi
     else
-        sudo ufw allow ssh
+        print_info "Allowing SSH..."
+        yes | sudo ufw allow ssh > /dev/null 2>&1
         print_success "Allowed SSH from all interfaces"
     fi
 
-    sudo ufw --force enable
+    print_info "Enabling firewall..."
+    sudo ufw --force enable > /dev/null 2>&1
     print_success "UFW firewall enabled"
 }
 
