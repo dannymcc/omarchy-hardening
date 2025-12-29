@@ -531,7 +531,9 @@ show_welcome() {
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
     echo -e "  ${BOLD}1. Create a snapshot first${NC}"
-    echo -e "     Before making system changes, create a backup."
+    echo -e "     Before making system changes, create a backup:"
+    echo ""
+    echo -e "     ${CYAN}omarchy-snapshot create${NC}"
     echo ""
     echo -e "  ${BOLD}2. Review what this script does${NC}"
     echo -e "     It's good practice to read scripts before running them."
@@ -542,42 +544,7 @@ show_welcome() {
     echo ""
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
-    echo -e "  ${BOLD}s${NC}  Create snapshot now (omarchy-snapshot create)"
-    echo -e "  ${BOLD}Enter${NC}  Continue without snapshot"
-    echo -e "  ${BOLD}q${NC}  Quit"
-    echo ""
-
-    while true; do
-        read -rsn1 key
-        case $key in
-            s|S)
-                echo ""
-                echo -e "  ${CYAN}Creating snapshot...${NC}"
-                echo ""
-                # Get sudo credentials first
-                if sudo -v; then
-                    sudo omarchy-snapshot create
-                    echo ""
-                    print_success "Snapshot created"
-                else
-                    print_error "Failed to obtain sudo credentials"
-                fi
-                echo ""
-                echo -e "  ${DIM}Press Enter to continue...${NC}"
-                read
-                return
-                ;;
-            q|Q)
-                echo ""
-                echo -e "  ${DIM}Exiting...${NC}"
-                echo ""
-                exit 0
-                ;;
-            "")
-                return
-                ;;
-        esac
-    done
+    read -p "  Press Enter to continue or Ctrl+C to exit... "
 }
 
 # ============================================================================
