@@ -35,11 +35,11 @@ OPTIONS[tailscale]=false
 OPTIONS[faillock]=false
 OPTIONS[git]=false
 
-# Configuration values
+# Configuration values (can be overridden via 'c' menu)
 SSH_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
 GITHUB_USERNAME=""
-GIT_NAME=""
-GIT_EMAIL=""
+GIT_NAME="$(git config --global user.name 2>/dev/null || echo '')"
+GIT_EMAIL="$(git config --global user.email 2>/dev/null || echo '')"
 MAX_LOGIN_ATTEMPTS=3
 
 print_banner() {
@@ -409,6 +409,12 @@ confirm_selection() {
         echo -e "      ${YELLOW}1.${NC} Set user.signingkey to $SSH_KEY_PATH"
         echo -e "      ${YELLOW}2.${NC} Enable commit and tag signing (gpg.format=ssh)"
         echo -e "      ${YELLOW}3.${NC} Apply workflow optimizations (pull.rebase, rerere, etc)"
+        if [[ ! -f "$SSH_KEY_PATH" ]]; then
+            echo -e "    ${RED}Warning:${NC} SSH key not found at $SSH_KEY_PATH"
+        fi
+        if [[ -z "$GIT_NAME" || -z "$GIT_EMAIL" ]]; then
+            echo -e "    ${DIM}Note: Press 'c' from menu to set Git name/email${NC}"
+        fi
         echo ""
     fi
 
