@@ -34,7 +34,6 @@ OPTIONS[firewall]=false
 OPTIONS[tailscale]=false
 OPTIONS[faillock]=false
 OPTIONS[git]=false
-OPTIONS[screensaver]=false
 
 # Configuration values
 SSH_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
@@ -82,7 +81,7 @@ show_menu() {
     echo ""
 
     local idx=1
-    for key in llmnr firewall tailscale faillock git screensaver; do
+    for key in llmnr firewall tailscale faillock git; do
         local label=""
         local desc=""
         case $key in
@@ -106,10 +105,6 @@ show_menu() {
                 label="Configure Git Signing"
                 desc="Enables SSH commit signing for verified commits"
                 ;;
-            screensaver)
-                label="Disable GNOME Screensaver"
-                desc="Prevents conflicts with hyprlock"
-                ;;
         esac
 
         if [[ "${OPTIONS[$key]}" == true ]]; then
@@ -131,7 +126,7 @@ show_menu() {
 
 toggle_option() {
     local idx=$1
-    local keys=(llmnr firewall tailscale faillock git screensaver)
+    local keys=(llmnr firewall tailscale faillock git)
     local key="${keys[$((idx-1))]}"
 
     if [[ "${OPTIONS[$key]}" == true ]]; then
@@ -142,13 +137,13 @@ toggle_option() {
 }
 
 select_all() {
-    for key in llmnr firewall tailscale faillock git screensaver; do
+    for key in llmnr firewall tailscale faillock git; do
         OPTIONS[$key]=true
     done
 }
 
 select_none() {
-    for key in llmnr firewall tailscale faillock git screensaver; do
+    for key in llmnr firewall tailscale faillock git; do
         OPTIONS[$key]=false
     done
 }
@@ -341,27 +336,11 @@ harden_git() {
     fi
 }
 
-harden_screensaver() {
-    echo ""
-    echo -e "  ${BOLD}Configuring Screensaver...${NC}"
-
-    if command -v gsettings &> /dev/null; then
-        if gsettings get org.gnome.desktop.screensaver idle-activation-enabled &> /dev/null; then
-            gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
-            print_success "GNOME screensaver disabled (hyprlock handles locking)"
-        else
-            print_info "GNOME screensaver settings not available"
-        fi
-    else
-        print_info "gsettings not available"
-    fi
-}
-
 confirm_selection() {
     print_banner
 
     local count=0
-    for key in llmnr firewall tailscale faillock git screensaver; do
+    for key in llmnr firewall tailscale faillock git; do
         [[ "${OPTIONS[$key]}" == true ]] && ((count++))
     done
 
@@ -433,15 +412,6 @@ confirm_selection() {
         echo ""
     fi
 
-    if [[ "${OPTIONS[screensaver]}" == true ]]; then
-        echo -e "  ${GREEN}✓${NC} ${BOLD}Disable GNOME Screensaver${NC}"
-        echo -e "    ${CYAN}Why:${NC} Prevents conflicts between GNOME screensaver and hyprlock,"
-        echo -e "         which Omarchy uses for screen locking."
-        echo -e "    ${CYAN}Action:${NC}"
-        echo -e "      ${YELLOW}1.${NC} Run: gsettings set org.gnome.desktop.screensaver idle-activation-enabled false"
-        echo ""
-    fi
-
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
     echo -e "  ${BOLD}$count${NC} option(s) selected. Some changes require sudo."
@@ -499,11 +469,6 @@ apply_hardening() {
         ((applied++))
     fi
 
-    if [[ "${OPTIONS[screensaver]}" == true ]]; then
-        harden_screensaver
-        ((applied++))
-    fi
-
     echo ""
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
@@ -527,20 +492,24 @@ apply_hardening() {
 
 show_welcome() {
     print_banner
-    echo -e "  ${YELLOW}${BOLD}Before you begin${NC}"
+    echo -e "  ${RED}${BOLD}Important${NC}"
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
-    echo -e "  ${BOLD}1. Create a snapshot first${NC}"
-    echo -e "     Before making system changes, create a backup:"
+    echo -e "  This tool automates security changes, but ${BOLD}you should not rely${NC}"
+    echo -e "  ${BOLD}on automation to secure your system.${NC}"
     echo ""
-    echo -e "     ${CYAN}omarchy-snapshot create${NC}"
+    echo -e "  Take the time to understand your distribution and make these"
+    echo -e "  changes yourself. Read the source code, understand each command,"
+    echo -e "  and run them manually. This builds knowledge you'll need when"
+    echo -e "  things go wrong."
     echo ""
-    echo -e "  ${BOLD}2. Review what this script does${NC}"
-    echo -e "     It's good practice to read scripts before running them."
-    echo -e "     Consider running commands manually to understand each change."
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
-    echo -e "     ${DIM}View the source:${NC}"
-    echo -e "     ${CYAN}https://github.com/dannymcc/omarchy-hardening${NC}"
+    echo -e "  ${BOLD}Before proceeding:${NC}"
+    echo ""
+    echo -e "  ${YELLOW}1.${NC} Create a snapshot: ${CYAN}omarchy-snapshot create${NC}"
+    echo ""
+    echo -e "  ${YELLOW}2.${NC} Read the source: ${CYAN}https://github.com/dannymcc/omarchy-hardening${NC}"
     echo ""
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
@@ -566,7 +535,7 @@ while true; do
     read -rsn1 key
 
     case $key in
-        1|2|3|4|5|6)
+        1|2|3|4|5)
             toggle_option "$key"
             ;;
         a|A)
