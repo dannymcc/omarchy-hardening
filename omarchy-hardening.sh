@@ -34,8 +34,17 @@ OPTIONS[firewall]=false
 OPTIONS[tailscale]=false
 OPTIONS[faillock]=false
 OPTIONS[git]=false
+OPTIONS[dns]=false
+
+# DNS Provider options
+declare -A DNS_PROVIDERS
+DNS_PROVIDERS[quad9]="9.9.9.9#dns.quad9.net 149.112.112.112#dns.quad9.net"
+DNS_PROVIDERS[cloudflare]="1.1.1.1#cloudflare-dns.com 1.0.0.1#cloudflare-dns.com"
+DNS_PROVIDERS[google]="8.8.8.8#dns.google 8.8.4.4#dns.google"
+DNS_PROVIDERS[mullvad]="194.242.2.2#dns.mullvad.net"
 
 # Configuration values (can be overridden via 'c' menu)
+DNS_PROVIDER="quad9"
 SSH_KEY_PATH="$HOME/.ssh/id_ed25519.pub"
 GITHUB_USERNAME=""
 GIT_NAME="$(git config --global user.name 2>/dev/null || echo '')"
@@ -81,7 +90,7 @@ show_menu() {
     echo ""
 
     local idx=1
-    for key in llmnr firewall tailscale faillock git; do
+    for key in llmnr firewall tailscale faillock git dns; do
         local label=""
         local desc=""
         case $key in
@@ -105,6 +114,10 @@ show_menu() {
                 label="Configure Git Signing"
                 desc="Enables SSH commit signing for verified commits"
                 ;;
+            dns)
+                label="Enable DNS-over-TLS"
+                desc="Encrypts DNS queries using ${DNS_PROVIDER}"
+                ;;
         esac
 
         if [[ "${OPTIONS[$key]}" == true ]]; then
@@ -126,7 +139,7 @@ show_menu() {
 
 toggle_option() {
     local idx=$1
-    local keys=(llmnr firewall tailscale faillock git)
+    local keys=(llmnr firewall tailscale faillock git dns)
     local key="${keys[$((idx-1))]}"
 
     if [[ "${OPTIONS[$key]}" == true ]]; then
@@ -137,13 +150,13 @@ toggle_option() {
 }
 
 select_all() {
-    for key in llmnr firewall tailscale faillock git; do
+    for key in llmnr firewall tailscale faillock git dns; do
         OPTIONS[$key]=true
     done
 }
 
 select_none() {
-    for key in llmnr firewall tailscale faillock git; do
+    for key in llmnr firewall tailscale faillock git dns; do
         OPTIONS[$key]=false
     done
 }
@@ -151,6 +164,18 @@ select_none() {
 configure_options() {
     print_banner
     echo -e "  ${BOLD}Configuration${NC}"
+    echo ""
+
+    # DNS Provider
+    echo -e "  ${CYAN}DNS Provider${NC} ${DIM}(for DNS-over-TLS)${NC}"
+    echo -e "  Current: ${BOLD}$DNS_PROVIDER${NC}"
+    echo -e "  ${DIM}Options: quad9, cloudflare, google, mullvad${NC}"
+    echo -e "  ${DIM}  quad9     - Privacy-focused, blocks malware (recommended)${NC}"
+    echo -e "  ${DIM}  cloudflare - Fast, privacy policy, no blocking${NC}"
+    echo -e "  ${DIM}  google    - Fast, but logs queries${NC}"
+    echo -e "  ${DIM}  mullvad   - Privacy-focused, no logging${NC}"
+    read -p "  New provider (Enter to keep): " input
+    [[ -n "$input" ]] && DNS_PROVIDER="$input"
     echo ""
 
     # SSH Key Path
@@ -336,11 +361,37 @@ harden_git() {
     fi
 }
 
+harden_dns() {
+    echo ""
+    echo -e "  ${BOLD}Configuring DNS-over-TLS...${NC}"
+
+    local dns_servers="${DNS_PROVIDERS[$DNS_PROVIDER]}"
+
+    if [[ -z "$dns_servers" ]]; then
+        print_warning "Unknown DNS provider: $DNS_PROVIDER, using Quad9"
+        dns_servers="${DNS_PROVIDERS[quad9]}"
+        DNS_PROVIDER="quad9"
+    fi
+
+    if [[ ! -d /etc/systemd/resolved.conf.d ]]; then
+        sudo mkdir -p /etc/systemd/resolved.conf.d
+    fi
+
+    sudo tee /etc/systemd/resolved.conf.d/dns-over-tls.conf > /dev/null << EOF
+[Resolve]
+DNS=$dns_servers
+DNSOverTLS=yes
+EOF
+
+    sudo systemctl restart systemd-resolved
+    print_success "DNS-over-TLS enabled using $DNS_PROVIDER"
+}
+
 confirm_selection() {
     print_banner
 
     local count=0
-    for key in llmnr firewall tailscale faillock git; do
+    for key in llmnr firewall tailscale faillock git dns; do
         [[ "${OPTIONS[$key]}" == true ]] && ((count++))
     done
 
@@ -418,6 +469,20 @@ confirm_selection() {
         echo ""
     fi
 
+    if [[ "${OPTIONS[dns]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Enable DNS-over-TLS${NC}"
+        echo -e "    ${CYAN}Why:${NC} Standard DNS queries are unencrypted. Your ISP (and anyone"
+        echo -e "         on the network) can see every domain you visit."
+        echo -e "    ${CYAN}Provider:${NC} ${BOLD}$DNS_PROVIDER${NC}"
+        echo -e "    ${CYAN}Action:${NC}"
+        echo -e "      ${YELLOW}1.${NC} Create /etc/systemd/resolved.conf.d/dns-over-tls.conf"
+        echo -e "      ${YELLOW}2.${NC} Set DNS servers to ${DNS_PROVIDERS[$DNS_PROVIDER]}"
+        echo -e "      ${YELLOW}3.${NC} Enable DNSOverTLS=yes"
+        echo -e "      ${YELLOW}4.${NC} Restart systemd-resolved service"
+        echo -e "    ${DIM}Note: Press 'c' from menu to change DNS provider${NC}"
+        echo ""
+    fi
+
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
     echo ""
     echo -e "  ${BOLD}$count${NC} option(s) selected. Some changes require sudo."
@@ -472,6 +537,11 @@ apply_hardening() {
 
     if [[ "${OPTIONS[git]}" == true ]]; then
         harden_git
+        ((applied++))
+    fi
+
+    if [[ "${OPTIONS[dns]}" == true ]]; then
+        harden_dns
         ((applied++))
     fi
 
@@ -541,7 +611,7 @@ while true; do
     read -rsn1 key
 
     case $key in
-        1|2|3|4|5)
+        1|2|3|4|5|6)
             toggle_option "$key"
             ;;
         a|A)
