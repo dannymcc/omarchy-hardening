@@ -353,6 +353,92 @@ harden_screensaver() {
     fi
 }
 
+confirm_selection() {
+    print_banner
+
+    local count=0
+    for key in llmnr firewall tailscale faillock git screensaver; do
+        [[ "${OPTIONS[$key]}" == true ]] && ((count++))
+    done
+
+    if [[ $count -eq 0 ]]; then
+        echo -e "  ${YELLOW}No options selected.${NC}"
+        echo -e "  ${DIM}Use number keys to select options, or 'a' to select all.${NC}"
+        echo ""
+        echo -e "  ${DIM}Press Enter to return to menu...${NC}"
+        read
+        return 1
+    fi
+
+    echo -e "  ${BOLD}Review Your Selections${NC}"
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo ""
+
+    if [[ "${OPTIONS[llmnr]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Disable LLMNR${NC}"
+        echo -e "    ${CYAN}Why:${NC} LLMNR allows attackers on your local network to intercept"
+        echo -e "         traffic by responding to name resolution queries."
+        echo -e "    ${CYAN}Action:${NC} Creates /etc/systemd/resolved.conf.d/disable-llmnr.conf"
+        echo -e "            and restarts systemd-resolved."
+        echo ""
+    fi
+
+    if [[ "${OPTIONS[firewall]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Enable UFW Firewall${NC}"
+        echo -e "    ${CYAN}Why:${NC} Earlier Omarchy versions had UFW configured but not enabled,"
+        echo -e "         leaving the system exposed to incoming connections."
+        echo -e "    ${CYAN}Action:${NC} Resets UFW rules, denies incoming by default, allows"
+        echo -e "            outgoing, permits SSH, and enables the firewall service."
+        echo ""
+    fi
+
+    if [[ "${OPTIONS[tailscale]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Tailscale-only SSH${NC}"
+        echo -e "    ${CYAN}Why:${NC} Binding SSH to your Tailscale IP makes it invisible to the"
+        echo -e "         public internet, dramatically reducing attack surface."
+        echo -e "    ${CYAN}Action:${NC} Creates /etc/ssh/sshd_config.d/tailscale-only.conf to bind"
+        echo -e "            SSH to Tailscale IP and disables password authentication."
+        echo ""
+    fi
+
+    if [[ "${OPTIONS[faillock]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Limit Login Attempts${NC}"
+        echo -e "    ${CYAN}Why:${NC} Omarchy increased failed login attempts from 3 to 10, making"
+        echo -e "         brute-force attacks easier if someone has physical access."
+        echo -e "    ${CYAN}Action:${NC} Sets deny=$MAX_LOGIN_ATTEMPTS in /etc/security/faillock.conf"
+        echo ""
+    fi
+
+    if [[ "${OPTIONS[git]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Configure Git Signing${NC}"
+        echo -e "    ${CYAN}Why:${NC} Git commits are trivially forgeable. SSH signing proves commits"
+        echo -e "         came from you and shows a 'Verified' badge on GitHub."
+        echo -e "    ${CYAN}Action:${NC} Configures git to sign commits/tags with your SSH key and"
+        echo -e "            applies workflow optimizations (rebase, rerere, etc)."
+        echo ""
+    fi
+
+    if [[ "${OPTIONS[screensaver]}" == true ]]; then
+        echo -e "  ${GREEN}✓${NC} ${BOLD}Disable GNOME Screensaver${NC}"
+        echo -e "    ${CYAN}Why:${NC} Prevents conflicts between GNOME screensaver and hyprlock,"
+        echo -e "         which Omarchy uses for screen locking."
+        echo -e "    ${CYAN}Action:${NC} Disables GNOME screensaver via gsettings."
+        echo ""
+    fi
+
+    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo ""
+    echo -e "  ${BOLD}$count${NC} option(s) selected. Some changes require sudo."
+    echo ""
+    read -p "  Proceed with these changes? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 apply_hardening() {
     print_banner
     echo -e "  ${BOLD}Applying Security Hardening${NC}"
@@ -446,8 +532,10 @@ while true; do
             exit 0
             ;;
         "")
-            # Enter pressed - apply selected options
-            apply_hardening
+            # Enter pressed - confirm and apply selected options
+            if confirm_selection; then
+                apply_hardening
+            fi
             ;;
     esac
 done
