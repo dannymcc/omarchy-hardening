@@ -448,6 +448,18 @@ apply_hardening() {
     print_banner
     echo -e "  ${BOLD}Applying Security Hardening${NC}"
     echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo ""
+
+    # Get sudo credentials upfront
+    echo -e "  ${CYAN}Sudo access required for system changes.${NC}"
+    if ! sudo -v; then
+        print_error "Failed to obtain sudo credentials"
+        echo ""
+        echo -e "  ${DIM}Press Enter to return to menu...${NC}"
+        read
+        return
+    fi
+    echo ""
 
     local applied=0
 
