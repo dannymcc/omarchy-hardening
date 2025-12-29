@@ -29,12 +29,12 @@ ARROW="${CYAN}>${NC}"
 
 # State for each option
 declare -A OPTIONS
-OPTIONS[llmnr]=true
-OPTIONS[firewall]=true
+OPTIONS[llmnr]=false
+OPTIONS[firewall]=false
 OPTIONS[tailscale]=false
-OPTIONS[faillock]=true
-OPTIONS[git]=true
-OPTIONS[screensaver]=true
+OPTIONS[faillock]=false
+OPTIONS[git]=false
+OPTIONS[screensaver]=false
 
 # Configuration values
 SSH_KEY_PATH="$HOME/.ssh/id_ed25519.pub"

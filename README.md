@@ -36,12 +36,12 @@ The script provides an interactive menu to select hardening options:
 Run the script and use number keys to toggle options on/off:
 
 ```
-  [x] 1  Disable LLMNR
-  [x] 2  Enable UFW Firewall
+  [ ] 1  Disable LLMNR
+  [ ] 2  Enable UFW Firewall
   [ ] 3  Tailscale-only SSH
-  [x] 4  Limit Login Attempts
-  [x] 5  Configure Git Signing
-  [x] 6  Disable GNOME Screensaver
+  [ ] 4  Limit Login Attempts
+  [ ] 5  Configure Git Signing
+  [ ] 6  Disable GNOME Screensaver
 
   c  Configure options    Enter  Apply selected
   a  Select all           q      Quit
