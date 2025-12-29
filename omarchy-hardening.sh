@@ -46,8 +46,15 @@ MAX_LOGIN_ATTEMPTS=3
 print_banner() {
     clear
     echo ""
-    echo -e "  ${MAGENTA}${BOLD}OMARCHY HARDENING${NC}"
-    echo -e "  ${DIM}─────────────────────────────────────────${NC}"
+    echo -e "${MAGENTA}${BOLD}"
+    echo "   ██████  ███    ███  █████  ██████   ██████ ██   ██ ██    ██"
+    echo "  ██    ██ ████  ████ ██   ██ ██   ██ ██      ██   ██  ██  ██ "
+    echo "  ██    ██ ██ ████ ██ ███████ ██████  ██      ███████   ████  "
+    echo "  ██    ██ ██  ██  ██ ██   ██ ██   ██ ██      ██   ██    ██   "
+    echo "   ██████  ██      ██ ██   ██ ██   ██  ██████ ██   ██    ██   "
+    echo -e "${NC}"
+    echo -e "  ${DIM}HARDENING${NC}"
+    echo -e "  ${DIM}─────────────────────────────────────────────────────────${NC}"
     echo ""
 }
 
@@ -525,7 +532,7 @@ show_welcome() {
     echo -e "  ${BOLD}1. Create a snapshot first${NC}"
     echo -e "     Before making system changes, create a backup:"
     echo ""
-    echo -e "     ${CYAN}sudo timeshift --create --comments \"Before hardening\"${NC}"
+    echo -e "     ${CYAN}omarchy-snapshot create${NC}"
     echo ""
     echo -e "  ${BOLD}2. Review what this script does${NC}"
     echo -e "     It's good practice to read scripts before running them."
