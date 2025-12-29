@@ -407,6 +407,8 @@ apply_hardening() {
     echo -e "  ${DIM}For more context on these security improvements:${NC}"
     echo -e "  ${CYAN}https://xn--gckvb8fzb.com/a-word-on-omarchy/${NC}"
     echo ""
+    echo -e "  ${DIM}Press Enter to return to menu...${NC}"
+    read
 }
 
 # ============================================================================
@@ -444,9 +446,8 @@ while true; do
             exit 0
             ;;
         "")
-            # Enter pressed - apply and exit
+            # Enter pressed - apply selected options
             apply_hardening
-            exit 0
             ;;
     esac
 done
