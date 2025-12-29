@@ -399,6 +399,15 @@ harden_dns() {
         DNS_PROVIDER="quad9"
     fi
 
+    # Check for Tailscale and disable its DNS if running
+    if command -v tailscale &> /dev/null; then
+        if tailscale status &> /dev/null; then
+            print_warning "Tailscale detected - disabling MagicDNS to prevent conflict"
+            sudo tailscale set --accept-dns=false
+            print_success "Tailscale DNS override disabled"
+        fi
+    fi
+
     if [[ ! -d /etc/systemd/resolved.conf.d ]]; then
         sudo mkdir -p /etc/systemd/resolved.conf.d
     fi
@@ -419,6 +428,15 @@ harden_dnscrypt() {
 
     # Get server name from our mapping or use directly
     local server_name="${DNSCRYPT_SERVERS[$DNSCRYPT_SERVER]:-$DNSCRYPT_SERVER}"
+
+    # Check for Tailscale and disable its DNS if running
+    if command -v tailscale &> /dev/null; then
+        if tailscale status &> /dev/null; then
+            print_warning "Tailscale detected - disabling MagicDNS to prevent conflict"
+            sudo tailscale set --accept-dns=false
+            print_success "Tailscale DNS override disabled"
+        fi
+    fi
 
     # Install dnscrypt-proxy if not present
     if ! command -v dnscrypt-proxy &> /dev/null; then
@@ -573,6 +591,9 @@ confirm_selection() {
         echo -e "      ${YELLOW}2.${NC} Set DNS servers to ${DNS_PROVIDERS[$DNS_PROVIDER]}"
         echo -e "      ${YELLOW}3.${NC} Enable DNSOverTLS=yes"
         echo -e "      ${YELLOW}4.${NC} Restart systemd-resolved service"
+        if command -v tailscale &> /dev/null && tailscale status &> /dev/null; then
+            echo -e "      ${YELLOW}5.${NC} Disable Tailscale MagicDNS (--accept-dns=false)"
+        fi
         echo -e "    ${DIM}Note: Press 'c' from menu to change DNS provider${NC}"
         echo ""
     fi
@@ -588,6 +609,9 @@ confirm_selection() {
         echo -e "      ${YELLOW}2.${NC} Configure /etc/dnscrypt-proxy/dnscrypt-proxy.toml"
         echo -e "      ${YELLOW}3.${NC} Point systemd-resolved to localhost"
         echo -e "      ${YELLOW}4.${NC} Enable and start dnscrypt-proxy service"
+        if command -v tailscale &> /dev/null && tailscale status &> /dev/null; then
+            echo -e "      ${YELLOW}5.${NC} Disable Tailscale MagicDNS (--accept-dns=false)"
+        fi
         echo -e "    ${DIM}Note: Press 'c' from menu to change DNSCrypt server${NC}"
         if [[ "${OPTIONS[dns]}" == true ]]; then
             echo -e "    ${YELLOW}Warning:${NC} Both DNS-over-TLS and DNSCrypt selected - DNSCrypt will take precedence"
