@@ -25,7 +25,7 @@ The script provides an interactive menu to select hardening options:
 | Option | Description |
 |--------|-------------|
 | **Disable LLMNR** | Prevents name poisoning attacks on local networks |
-| **Enable UFW Firewall** | Activates the pre-configured but inactive firewall |
+| **Enable UFW Firewall** | For earlier Omarchy versions where UFW was not enabled |
 | **Tailscale-only SSH** | Restricts SSH to your Tailscale network |
 | **Limit Login Attempts** | Reduces failed attempts from 10 to 3 before lockout |
 | **Configure Git Signing** | Enables SSH commit signing for verified commits |
@@ -56,9 +56,9 @@ Press `c` to configure additional settings like SSH key path, Git name/email, an
 
 LLMNR (Link-Local Multicast Name Resolution) can be exploited for man-in-the-middle attacks. Attackers on the local network can respond to LLMNR queries and redirect traffic.
 
-### Firewall Not Running
+### Firewall Not Running (Earlier Versions)
 
-Omarchy ships with UFW rules pre-configured but the service is not enabled, leaving the system exposed.
+Earlier versions of Omarchy shipped with UFW rules pre-configured but the service was not enabled, leaving the system exposed. This has since been fixed in newer releases.
 
 ### Relaxed Login Attempt Limits
 

@@ -93,7 +93,7 @@ show_menu() {
                 ;;
             firewall)
                 label="Enable UFW Firewall"
-                desc="Enables the pre-configured but inactive firewall"
+                desc="For earlier Omarchy versions where UFW was not enabled"
                 ;;
             tailscale)
                 label="Tailscale-only SSH"
