@@ -146,6 +146,55 @@ Press `c` in the menu to configure:
 - **Git Name/Email**: Your identity for commits
 - **GitHub Username**: For credential helper configuration
 
+## Further Hardening
+
+This script covers the basics. For users who want to go deeper, here are recommended next steps:
+
+### OpenSnitch (Highly Recommended)
+
+[OpenSnitch](https://github.com/evilsocket/opensnitch) is an application-level firewall that prompts you whenever a program tries to make a network connection. It's an excellent way to understand what your system is actually doing and catch unexpected outbound connections.
+
+```bash
+yay -S opensnitch
+sudo systemctl enable --now opensnitchd
+```
+
+Once installed, you'll see prompts for each new connection - allow or deny, once or forever. It's educational and practical.
+
+### Additional Resources
+
+- **[ArchWiki Security Guide](https://wiki.archlinux.org/title/Security)** - Comprehensive security recommendations for Arch Linux
+
+- **linux-hardened kernel** - Arch provides a hardened kernel with security patches:
+  ```bash
+  sudo pacman -S linux-hardened linux-hardened-headers
+  ```
+  Remember to update your bootloader configuration after installing.
+
+- **arch-audit** - Check your system for known vulnerabilities:
+  ```bash
+  sudo pacman -S arch-audit
+  arch-audit
+  ```
+
+- **AppArmor** - Mandatory access control to restrict what applications can do. See the [ArchWiki AppArmor page](https://wiki.archlinux.org/title/AppArmor).
+
+- **Kernel sysctl hardening** - Tune kernel parameters for security. Create `/etc/sysctl.d/99-security.conf`:
+  ```bash
+  # Hide kernel pointers
+  kernel.kptr_restrict = 2
+
+  # Restrict dmesg access
+  kernel.dmesg_restrict = 1
+
+  # Disable kexec
+  kernel.kexec_load_disabled = 1
+  ```
+
+- **DNS encryption** - Configure DNS-over-TLS in systemd-resolved. See the [ArchWiki systemd-resolved page](https://wiki.archlinux.org/title/Systemd-resolved#DNS_over_TLS).
+
+- **Filesystem hardening** - Add `noexec` to tmpfs mounts, hide other users' processes with `hidepid=2` on /proc.
+
 ## License
 
 MIT
